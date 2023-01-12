@@ -13,7 +13,6 @@
     var pause = false;
     var macFilter = "";
     var isMacFilter = false;
-    var buffer = [];
 
     function displayMessages(message, topic) {
         let date = new Date();
@@ -137,6 +136,7 @@
             $.get("https://localhost:44382/disconnect/" + brokerIP);
             $("#b_pause").html("Pause");
             console.log('Disconnected');
+            tableIndex = 1;
         }
         pause = false;
     });
