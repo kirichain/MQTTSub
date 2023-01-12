@@ -16,7 +16,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-int i;
+//Broker IPs here
 string[] brokerIPs = { "125.234.135.55", "125.234.135.55", "125.234.135.55" };
 string sysCtrl = "";
 string eventCnt = "";
@@ -31,14 +31,6 @@ bool isDisconnected = false;
 var mqttFactory = new MqttFactory();
 var mqttClient = mqttFactory.CreateMqttClient();
 
-void SaySomething()
-{
-    Console.WriteLine("Hello World");
-    i = 7;
-}
-
-//SaySomething();
-
 async Task Handle_Received_Application_Message(string broker)
 {
     if (isDisconnected)
@@ -46,99 +38,84 @@ async Task Handle_Received_Application_Message(string broker)
         isDisconnected = false;
         mqttClient = mqttFactory.CreateMqttClient();
     }
-    /*
-     * This sample subscribes to a topic and processes the received message.
-     */
 
-    //var mqttFactory = new MqttFactory();
-
-    //using (var mqttClient = mqttFactory.CreateMqttClient())
-    //{
     var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(broker).Build();
 
-        // Setup message handling before connecting so that queued messages
-        // are also handled properly. When there is no event handler attached all
-        // received messages get lost.
-        mqttClient.ApplicationMessageReceivedAsync += e =>
+    mqttClient.ApplicationMessageReceivedAsync += e =>
+    {
+        Console.WriteLine($"+ Topic = {e.ApplicationMessage.Topic}");
+        switch (e.ApplicationMessage.Topic)
         {
-            //e.DumpToConsole();
-            //Console.WriteLine(e);
-            //Console.WriteLine("### RECEIVED APPLICATION MESSAGE ###");
-            Console.WriteLine($"+ Topic = {e.ApplicationMessage.Topic}");
-            switch (e.ApplicationMessage.Topic)
-            {
-                case "/SysCtrl":
-                    sysCtrl = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                    break;
-                case "/Event/Cnt":
-                    eventCnt = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                    break;
-                case "/Event/ComSew/Cnt":
-                    eventComSewCnt = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                    break;
-                case "/Event/Mchn_time":
-                    eventMchntime = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                    break;
-                case "/Event/Teaching":
-                    eventTeaching = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                    break;
-                case "/Event/Handling":
-                    eventHandling = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                    break;
-            }
-            Console.WriteLine($"+ Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
-            //Console.WriteLine($"+ QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
-            //Console.WriteLine($"+ Retain = {e.ApplicationMessage.Retain}");
-            //Console.WriteLine();
-            return Task.CompletedTask;
-        };
+            case "/SysCtrl":
+                sysCtrl = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                break;
+            case "/Event/Cnt":
+                eventCnt = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                break;
+            case "/Event/ComSew/Cnt":
+                eventComSewCnt = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                break;
+            case "/Event/Mchn_time":
+                eventMchntime = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                break;
+            case "/Event/Teaching":
+                eventTeaching = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                break;
+            case "/Event/Handling":
+                eventHandling = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                break;
+        }
+        Console.WriteLine($"+ Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
 
-        await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+        return Task.CompletedTask;
+    };
 
-        var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
-            .WithTopicFilter(
-            f =>
-            {
-                f.WithTopic("/SysCtrl");
-            })
-        .WithTopicFilter(
-            f =>
-            {
-                f.WithTopic("/Event/Cnt");
-            })
-        .WithTopicFilter(
-            f =>
-            {
-                f.WithTopic("/Event/ComSew/Cnt");
-            })
-        .WithTopicFilter(
-            f =>
-            {
-                f.WithTopic("/Event/Mchn_time");
-            })
-        .WithTopicFilter(
-            f =>
-            {
-                f.WithTopic("/Event/Teaching");
-            })
-        .WithTopicFilter(
-            f =>
-            {
-                f.WithTopic("/Event/Nfc/Uid");
-            })
-        .WithTopicFilter(
-            f =>
-            {
-                f.WithTopic("/Event/Handling");
-            })
-        .Build();
+    await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
-        await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
+    var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
+        .WithTopicFilter(
+        f =>
+        {
+            f.WithTopic("/SysCtrl");
+        })
+    .WithTopicFilter(
+        f =>
+        {
+            f.WithTopic("/Event/Cnt");
+        })
+    .WithTopicFilter(
+        f =>
+        {
+            f.WithTopic("/Event/ComSew/Cnt");
+        })
+    .WithTopicFilter(
+        f =>
+        {
+            f.WithTopic("/Event/Mchn_time");
+        })
+    .WithTopicFilter(
+        f =>
+        {
+            f.WithTopic("/Event/Teaching");
+        })
+    .WithTopicFilter(
+        f =>
+        {
+            f.WithTopic("/Event/Nfc/Uid");
+        })
+    .WithTopicFilter(
+        f =>
+        {
+            f.WithTopic("/Event/Handling");
+        })
+    .Build();
 
-        Console.WriteLine("MQTT client subscribed to topic.");
+    await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
 
-        Console.WriteLine("Press enter to exit.");
-        Console.ReadLine();
+    Console.WriteLine("MQTT client subscribed to topic.");
+
+    Console.WriteLine("Press enter to exit.");
+    Console.ReadLine();
     //}
 }
 //Handle_Received_Application_Message("125.234.135.55");
@@ -175,6 +152,8 @@ app.MapGet("/subscribe/{brokerIP}/{topic}", (string brokerIP, string topic) =>
 
     Handle_Received_Application_Message(brokerIP);
 
+    return Results.Ok();
+
 });
 
 app.MapGet("/disconnect/{brokerIP}", (string brokerIP) =>
@@ -182,6 +161,8 @@ app.MapGet("/disconnect/{brokerIP}", (string brokerIP) =>
     Disconnect_Clean(brokerIP);
 
     Console.WriteLine("Request for disconnecting broker = " + brokerIP);
+
+    return Results.Ok();
 });
 
 app.MapGet("/{brokerIP}/{topic}/messages", (string brokerIP, string topic) =>
@@ -214,6 +195,7 @@ app.MapGet("/{brokerIP}/{topic}/messages", (string brokerIP, string topic) =>
     return Results.Text(temp);
 });
 
+app.MapGet("/test", () => "Done");
 
 app.Run();
 
