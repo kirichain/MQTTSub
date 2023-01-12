@@ -16,7 +16,7 @@
 
     function displayMessages(message, topic) {
         let date = new Date();
-        let createdAt = date.getTime();
+        let createdAt = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
         let table = $('#messageTable').DataTable();
         if (isMacFilter) {
             for (let i = 0; i < macFilterArr.length; i++) {
