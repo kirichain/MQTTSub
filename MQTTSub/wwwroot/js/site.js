@@ -15,10 +15,6 @@
     var isMacFilter = false;
     var buffer = [];
 
-    function filterBuffer() {
-
-    }
-
     function displayMessages(message, topic) {
         let date = new Date();
         let createdAt = date.getTime();
@@ -74,36 +70,47 @@
     }
 
     function initTask() {
-        topics = $("#topicSelector").select2('data');
+        let selectedTopics = $('#topicSelector option:selected');
+        for (let i = 0; i < selectedTopics.length; i++) {
+            console.log(selectedTopics[i].value);
+            topics.push(selectedTopics[i].value);
+        }
         brokerIP = $("#brokerSelector").val();
 
+        console.log("Topics = ");
         console.log(topics);
-        console.log(brokerIP);
+        console.log("BrokerIP = " + brokerIP);
 
         for (let i = 0; i < topics.length; i++) {
             recentMessage.push(" ");
             previousMessage.push(" ");
         }
-        //console.log(recentMessage.length);
-        //console.log(previousMessage.length);
+        console.log("Recent Message = " + recentMessage);
+        console.log("Previous Message = " + previousMessage);
 
         for (let i = 0; i < topics.length; i++) {
-            let encoded_url = "https://localhost:44382/subscribe/" + brokerIP + "/" + encodeURIComponent(topics[i].id);
+            let encoded_url = "https://localhost:44382/subscribe/" + brokerIP + "/" + encodeURIComponent(topics[i]);
             console.log("encoded url = " + encoded_url);
             $.get(encoded_url, function cb(res, status) {
                 console.log(status);
             });
-
+            console.log('Sent subscribe request');
             //Set interval function to get message data from topics and broker choosen 
-            let id = setInterval(setCallback, 1000, brokerIP, topics[i].id);
+            let id = setInterval(setCallback, 1000, brokerIP, topics[i]);
             console.log("interval id = " + id);
             intervals.push(id);
-            console.log(topics[i].id);
+            console.log(topics[i]);
         }
     }
 
     //Init topic selector
-    $("#topicSelector").select2();
+    $("#topicSelector").multiselect({
+        // Bootstrap 5 compatibility
+        nonSelectedText: 'Select topic',
+        templates: {
+            button: '<button type="button" class="multiselect dropdown-toggle btn btn-primary" data-bs-toggle="dropdown" aria-expanded="false"><span class="multiselect-selected-text"></span></button>',
+        }
+    });
 
     $("#b_connect").click(function () {
         //console.log("Butt Caption changed");
@@ -116,9 +123,9 @@
                     macFilter = macFilter.replace(" ", "");
                     temp = macFilter.includes(" ");
                 }
-                console.log(macFilter);
+                console.log("Mac fileter = " + macFilter);
                 macFilterArr = macFilter.split(",");
-                console.log(macFilterArr);
+                console.log("Mac filter array = " + macFilterArr);
             }
             $("#b_connect").html("Disconnect");
             //Send request to server that start subscribing to broker IP and topics choosen
